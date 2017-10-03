@@ -4,7 +4,7 @@
 		module="functional_domain_model-build"
 		revision="0.1-SNAPSHOT"
 		status="integration"
-		publication="20170628155042"
+		publication="20171003083803"
 		e:sbtVersion="0.13" e:scalaVersion="2.10"
 	>
 		<description>
