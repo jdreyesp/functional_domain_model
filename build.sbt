@@ -2,7 +2,7 @@ name := "functional_domain_model"
 
 lazy val buildSettings = Seq(
   version := "0.0.1",
-  scalaVersion := "2.12.2"
+  scalaVersion := "2.11.7"
 )
 
 lazy val dependencySettings = Seq(
