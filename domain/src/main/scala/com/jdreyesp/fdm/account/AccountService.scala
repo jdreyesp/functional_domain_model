@@ -59,13 +59,11 @@ object AccountService extends AccountService {
     })
   }
 
-  //TODO: COMPLETE
   /**
     * Extending Function1 as a monad, supporting flatmap with functions,
     *  you can use composition to create complex operations, using currying.
     *
     *  The first thing that you have to do is extend Function1 to support flatmap with functions. This is performed
-    *  //TODO: COMPLETE
     *
     *  From your client you can call this curried method like this:
     *
