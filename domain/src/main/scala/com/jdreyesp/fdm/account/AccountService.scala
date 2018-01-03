@@ -4,6 +4,7 @@ import java.util.{Calendar, Date}
 
 import com.jdreyesp.fdm.account.Amount.Amount
 import com.jdreyesp.fdm.account.repository.AccountRepository
+import com.jdreyesp.fdm.reader.ReaderMonad
 import com.jdreyesp.fdm.utils.Verifications
 
 import scala.util.{Failure, Success, Try}
@@ -21,10 +22,10 @@ sealed trait AccountService {
 
   def today = Calendar.getInstance.getTime
 
-  def openCheckingAccount(customer: Customer, effectiveDate: Date) : AccountRepository => Try[Account]
-  def debit(a: Account, amount: Amount) : AccountRepository => Try[Account]
-  def credit(a : Account, amount: Amount) : AccountRepository => Try[Account]
-  def lookupAccount(id: String) : AccountRepository => Try[Account]
+  def openCheckingAccount(customer: Customer, effectiveDate: Date) : ReaderMonad[AccountRepository, Try[Account]]
+  def debit(a: Account, amount: Amount) : ReaderMonad[AccountRepository, Try[Account]]
+  def credit(a : Account, amount: Amount) : ReaderMonad[AccountRepository,Try[Account]]
+  def lookupAccount(id: String) : ReaderMonad[AccountRepository,Try[Account]]
 }
 
 object AccountService extends AccountService {
@@ -34,16 +35,16 @@ object AccountService extends AccountService {
     else None
   }
 
-  override def debit(a: Account, amount: Amount): AccountRepository => Try[Account] =
-    (_ : AccountRepository) => {
+  override def debit(a: Account, amount: Amount): ReaderMonad[AccountRepository,Try[Account]] =
+    ReaderMonad(_ => {
     if(a.balance.amount < amount) {
       Failure(new Exception("Insufficient balance in account"))
     } else
       Success(a.copy(balance = Balance(a.balance.amount - amount)))
-  }
+  })
 
-  override def credit(a: Account, amount: Amount): AccountRepository => Try[Account] = {
-    (_ : AccountRepository) => Success(a.copy(balance = Balance(a.balance.amount + amount)))
+  override def credit(a: Account, amount: Amount): ReaderMonad[AccountRepository, Try[Account]] = {
+    ReaderMonad(_ => Success(a.copy(balance = Balance(a.balance.amount + amount))))
   }
 
   /**
@@ -51,11 +52,11 @@ object AccountService extends AccountService {
     * @param id
     * @return
     */
-  override def lookupAccount(id : String): AccountRepository => Try[Account] = {
-    accountRepository : AccountRepository => accountRepository.query(id).flatMap {
+  override def lookupAccount(id : String): ReaderMonad[AccountRepository, Try[Account]] = {
+    ReaderMonad(_.query(id).flatMap {
       case Some(account) => Success(account)
       case _ => Failure(new Exception(s"Account with id $id not found"))
-    }
+    })
   }
 
   //TODO: COMPLETE
@@ -73,7 +74,7 @@ object AccountService extends AccountService {
     * @param a
     * @return
     */
-  def complexOperation(a : Account) : AccountRepository => Try[Account] = {
+  def complexOperation(a : Account) : ReaderMonad[AccountRepository, Try[Account]] = {
     for {
       _ <- debit(a, 30)
       _ <- debit(a, 30)
@@ -83,8 +84,8 @@ object AccountService extends AccountService {
   }
 
   //This entity creation method could be in an AccountFactory
-  override def openCheckingAccount(customer: Customer, effectiveDate: Date): AccountRepository => Try[Account] = {
+  override def openCheckingAccount(customer: Customer, effectiveDate: Date): ReaderMonad[AccountRepository, Try[Account]] = {
     //Account opening logic
-    (_ : AccountRepository) => Success(Account("1", "newAccount", today, customers=Seq(customer)))
+    ReaderMonad(_ => Success(Account("1", "newAccount", today, customers=Seq(customer))))
   }
 }

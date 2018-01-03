@@ -22,7 +22,7 @@ class AccountServiceTest extends FlatSpec with GivenWhenThen with Matchers {
     val account : Account = Account("account 1", "John Smith", today, Balance(100))
 
     When("A debit operation is executed in that account")
-    val newAccount : Try[Account] = debit(account, 100)(accountRepository)
+    val newAccount : Try[Account] = debit(account, 100).run(accountRepository)
 
     Then("A new account is returned with the new Balance")
     newAccount.isSuccess should be (true)
@@ -38,7 +38,7 @@ class AccountServiceTest extends FlatSpec with GivenWhenThen with Matchers {
 
     When("A debit operation is executed in that account with an ammount that exceeds the account balance")
     Then("An error is thrown")
-    debit(account, 200)(accountRepository).map(account => fail("Should not success as amount retrieved is more than account balance"))
+    debit(account, 200).run(accountRepository).map(account => fail("Should not success as amount retrieved is more than account balance"))
       .getOrElse(succeed)
 
   }
@@ -50,7 +50,7 @@ class AccountServiceTest extends FlatSpec with GivenWhenThen with Matchers {
 
     When("A debit operation is executed in that account")
     Then("A new account is returned with the new Balance")
-    (credit(account, 100)(accountRepository)).map(account => account.balance.amount) should be (Success(200))
+    (credit(account, 100).run(accountRepository)).map(account => account.balance.amount) should be (Success(200))
 
   }
 
@@ -61,7 +61,7 @@ class AccountServiceTest extends FlatSpec with GivenWhenThen with Matchers {
     When("Opening a new checking account")
     Then("A new account is returned")
     verifyCustomer(customer).map(customer => {
-      openCheckingAccount(customer, today)(accountRepository).map(account => account.customers)
+      openCheckingAccount(customer, today).run(accountRepository).map(account => account.customers)
     } should be (Success(Seq(customer))))
     .getOrElse(fail("Customer should be valid"))
   }
