@@ -11,5 +11,13 @@ lazy val dependencySettings = Seq(
 
 lazy val allSettings = buildSettings ++ dependencySettings
 
-lazy val root = Project("functional_domain_model", file("."))
+//Modules
+lazy val core = (project in file("core"))
+  .settings(buildSettings)
+
+lazy val domain = (project in file("domain"))
   .settings(allSettings)
+  .dependsOn(core)
+
+lazy val root = Project("functional_domain_model", file("."))
+  .aggregate(core, domain)
